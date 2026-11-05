@@ -41,6 +41,10 @@ function merge(cloud, incoming) {
   const inNewer = (incoming.conciliadoEm || "") > (cloud.conciliadoEm || "");
   if (inNewer) { out.conciliadoEm = incoming.conciliadoEm; out.agenda = incoming.agenda || cloud.agenda; }
   out.items = [...map.values()];
+  // notes: newest copy of each note wins; notes deleted on the page stay deleted
+  const deadN = new Set(cloud._deletedNotas || []), nm = new Map((cloud.notas || []).map(n => [n.id, n]));
+  for (const n of incoming.notas || []) { if (deadN.has(n.id)) continue; const c = nm.get(n.id); if (!c || (n.atualizado || "") > (c.atualizado || "")) nm.set(n.id, n); }
+  out.notas = [...nm.values()];
   out.atualizado = new Date().toISOString();
   return out;
 }
@@ -188,7 +192,7 @@ export default {
       const ver = cur ? cur.ver : 0;
       let merged;
       if (!cur) merged = data;
-      else if (Number(base) === ver) merged = { ...data, _deleted: JSON.parse(cur.v)._deleted || [] };
+      else if (Number(base) === ver) { const c = JSON.parse(cur.v); merged = { ...data, _deleted: c._deleted || [], _deletedNotas: c._deletedNotas || [] }; }
       else merged = merge(JSON.parse(cur.v), data);
       await putKV(env.DB, "data", JSON.stringify(merged), ver + 1);
       return J({ ok: true, version: ver + 1, merged: Number(base) !== ver && !!cur });
@@ -208,6 +212,9 @@ export default {
         const now = new Set((j.items || []).map(i => i.id));
         const removed = (prev.items || []).map(i => i.id).filter(id => !now.has(id));
         j._deleted = [...new Set([...(prev._deleted || []), ...(j._deleted || []), ...removed])].slice(-1000);
+        const nowN = new Set((j.notas || []).map(n => n.id));
+        const goneN = (prev.notas || []).map(n => n.id).filter(id => !nowN.has(id));
+        j._deletedNotas = [...new Set([...(prev._deletedNotas || []), ...(j._deletedNotas || []), ...goneN])].slice(-1000);
         await putKV(env.DB, "data", JSON.stringify(j), ver + 1);
         return J({ ok: true, version: ver + 1 }, 200, { "X-Version": String(ver + 1) });
       }

@@ -6,9 +6,9 @@
 <title>IT Desk · Chattanooga</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23064169'/%3E%3Ctext x='32' y='42' font-family='Segoe UI,Arial,sans-serif' font-size='28' font-weight='700' fill='white' text-anchor='middle'%3EIT%3C/text%3E%3C/svg%3E">
 <script>
-const CLOUD=/^https?:$/.test(location.protocol);try{const t=localStorage.getItem("oi.theme");if(["light","dark","night","fun","future"].includes(t))document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+const CLOUD=/^https?:$/.test(location.protocol);try{const t=localStorage.getItem("oi.theme");if(["light","dark","night","fun","future","quest"].includes(t))document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Press+Start+2P&family=Nunito:wght@400;600;700;800&family=Orbitron:wght@500;700;800&family=Exo+2:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Press+Start+2P&family=Nunito:wght@400;600;700;800&family=Orbitron:wght@500;700;800&family=Exo+2:wght@400;500;600;700&family=Cinzel:wght@600;700;800&family=Alegreya+Sans:wght@400;500;700;800&display=swap">
 <style>
 /* Layout: single inbox column. Header with date + triage strip (overdue / today / this week / waiting),
    smart quick-add bar, tabs, then rows grouped by due bucket. Plants carry their own hue. */
@@ -37,6 +37,47 @@ const CLOUD=/^https?:$/.test(location.protocol);try{const t=localStorage.getItem
   --late:#ff8a7a; --late-soft:#3b1f1b; --today:#f2b552; --today-soft:#36290f; --done:#8fd19b; --done-soft:#1c2e20;
   --gc2:#f783ac; --gc3:#bf98f5; --gch:#ff9a66; --gna:#5fd1c4; --reg:#a1a8b3; color-scheme:dark}
 /* ---- extra themes ---- */
+
+/* Quest: forest night, parchment cards, gold trim — an original adventure look */
+:root[data-theme="quest"]{
+  --bg:#0f2a1f; --surface:#f4e8c8; --raise:#ead9ad; --line:#c9ad74; --line-strong:#a8864b;
+  --fg:#2b1d0e; --muted:#5f4a2c; --faint:#8a7350;
+  --accent:#1f6b45; --accent-ink:#fff8e6; --accent-soft:#d9e8c9;
+  --late:#a3271c; --late-soft:#f3d3c4; --today:#9a5b00; --today-soft:#f5e0b0; --done:#2f6e3a; --done-soft:#d8e9c6;
+  --gc2:#a8325e; --gc3:#6b3fa0; --gch:#a8480f; --gna:#1d7a6c; --reg:#6f6a5a;
+  --display:"Cinzel",Georgia,serif; --body:"Alegreya Sans","Segoe UI",system-ui,sans-serif;
+  --brand:#123826; --brand-ink:#f6e7b8; --gold:#d4a73a; color-scheme:light}
+:root[data-theme="quest"] body{background:radial-gradient(900px 480px at 15% -5%,#2f5d3f 0%,transparent 60%),radial-gradient(800px 500px at 100% 0%,#1d4a3a 0%,transparent 55%),linear-gradient(180deg,#14352a,#0b2018 70%) fixed}
+:root[data-theme="quest"] .brandbar{background:linear-gradient(135deg,#0f3022,#1c4a33);border:2px solid var(--gold);box-shadow:0 0 0 4px #0b2018,0 0 0 5px #8a6a26,0 10px 28px rgba(0,0,0,.35)}
+:root[data-theme="quest"] .brandbar h1{font-family:var(--display);letter-spacing:.03em;color:#f6e7b8;text-shadow:0 2px 0 #0b2018}
+:root[data-theme="quest"] .brandbar :is(.date,.brief,.sync,.sync2,.hbtn){color:#e9d9a8}
+:root[data-theme="quest"] .brandbar .hbtn:hover{background:rgba(212,167,58,.18);color:#fff3cf}
+:root[data-theme="quest"] .brandbar .logo{display:none!important}
+:root[data-theme="quest"] .brandbar .wordmark{display:block;padding:0 2px}
+:root[data-theme="quest"] .brandbar .wordmark img{height:28px;filter:brightness(0) invert(78%) sepia(52%) saturate(620%) hue-rotate(358deg) brightness(.98) drop-shadow(0 2px 0 #0b2018)}
+:root[data-theme="quest"] :is(.card,.triage,.col,.add,.search,li.item,.empty,.nside,.ned){box-shadow:inset 0 0 22px rgba(120,84,30,.16),0 2px 0 rgba(0,0,0,.25)}
+:root[data-theme="quest"] .card{border-color:#b8955a}
+:root[data-theme="quest"] .card:hover{border-color:var(--gold);box-shadow:inset 0 0 22px rgba(120,84,30,.16),0 0 0 2px rgba(212,167,58,.55)}
+:root[data-theme="quest"] .colh{font-family:var(--display);letter-spacing:.04em}
+:root[data-theme="quest"] .tri .k{font-family:var(--display)}
+:root[data-theme="quest"] .primary{background:linear-gradient(180deg,#e2b84a,#b8871f);color:#2b1d0e;border:1px solid #7a5512;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+:root[data-theme="quest"] .primary:hover{background:linear-gradient(180deg,#ecc65a,#c4932a)}
+:root[data-theme="quest"] :is(.roundbar,.hint,.searchinfo,.foot,.group,.tab,.sortsw,.sortsw .sl,.sortsw button){color:#e3d3a3}
+:root[data-theme="quest"] :is(.roundbar b,.group .c){color:#fff3cf}
+:root[data-theme="quest"] .roundbar button{color:var(--gold)}
+:root[data-theme="quest"] .tab[aria-selected=true]{color:#fff3cf;border-bottom-color:var(--gold)}
+:root[data-theme="quest"] .tab .n{background:rgba(212,167,58,.14);border-color:rgba(212,167,58,.4);color:#f3e2b0}
+:root[data-theme="quest"] .chip{color:#e3d3a3;border-color:rgba(212,167,58,.4);background:transparent}
+:root[data-theme="quest"] .chip[aria-pressed=true]{background:#f4e8c8;color:var(--fg)}
+:root[data-theme="quest"] :is(.bar,.foot){border-color:rgba(212,167,58,.3)}
+:root[data-theme="quest"] .viewsw{border-color:#a8864b}
+:root[data-theme="quest"] .viewsw button[aria-pressed=true]{background:#1f6b45;color:#fff8e6}
+:root[data-theme="quest"] .sortsw button:hover{background:rgba(212,167,58,.15);color:#fff3cf}
+:root[data-theme="quest"] .sortsw button[aria-pressed=true]{background:#f4e8c8;color:var(--fg);border-color:var(--gold)}
+:root[data-theme="quest"] .spaces button{color:#e3d3a3}
+:root[data-theme="quest"] .spaces button[aria-selected=true]{color:#fff3cf;border-bottom-color:var(--gold)}
+:root[data-theme="quest"] .spaces .n{background:rgba(212,167,58,.14);border-color:rgba(212,167,58,.4);color:#f3e2b0}
+:root[data-theme="quest"] :is(.upc h3,.upc .dh,.upc .day > .h){color:#f3e2b0}
 /* Night: Gestamp light cards on a deep navy background */
 :root[data-theme="night"]{
   --bg:#0a2540; --surface:#e3eaf2; --raise:#d6dfea; --line:#c3cfdd; --line-strong:#a9b9cc;
@@ -54,6 +95,9 @@ const CLOUD=/^https?:$/.test(location.protocol);try{const t=localStorage.getItem
 :root[data-theme="night"] :is(.bar,.foot){border-color:rgba(255,255,255,.14)}
 :root[data-theme="night"] .brandbar{box-shadow:0 0 0 1px rgba(255,255,255,.08)}
 :root[data-theme="night"] .viewsw button[aria-pressed=true]{background:var(--accent);color:#fff}
+:root[data-theme="night"] :is(.sortsw,.sortsw .sl,.sortsw button,.spaces button){color:#c3d2e4}
+:root[data-theme="night"] .spaces button[aria-selected=true]{color:#fff;border-bottom-color:#fff}
+:root[data-theme="night"] .spaces .n{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#dbe6f3}
 /* Fun: retro game / arcade */
 :root[data-theme="fun"]{
   --bg:#5c94fc; --surface:#ffffff; --raise:#fff6dc; --line:#1a1a1a; --line-strong:#000000;
@@ -363,6 +407,51 @@ button:disabled{opacity:.5;cursor:not-allowed}
 :root[data-theme="future"] .sortsw button[aria-pressed=true]{box-shadow:0 0 8px var(--accent)}
 .sortsw[hidden]{display:none}
 body.boardmode .wrap{max-width:1280px}
+/* spaces: Work · Personal · Notes */
+.spaces{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:-6px}
+.spaces button{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:0;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:8px 12px;color:var(--muted);font:600 14px var(--body)}
+.spaces button svg{opacity:.8}
+.spaces button[aria-selected=true]{color:var(--fg);border-bottom-color:var(--accent)}
+.spaces button:hover{color:var(--fg)}
+.spaces .n{font:500 12px var(--body);font-variant-numeric:tabular-nums;padding:1px 6px;border-radius:6px;background:var(--raise);border:1px solid var(--line);color:var(--muted)}
+.spaces .n:empty{display:none}
+:root[data-theme="fun"] .spaces button{font-family:var(--display);font-size:10px}
+body.space-personal .hint .wk{display:none}
+body.space-notes :is(#triage,#roundbar,.addwrap,#preview,.hint,#bar,#qInfo,#list,#board,#upcoming){display:none!important}
+body.space-notes .wrap{max-width:1180px}
+#notes{display:none}
+body.space-notes #notes{display:grid}
+body:not(.space-work) #reportBtn,body:not(.space-work) #reportBtn+.hsep{display:none}
+/* notes */
+#notes{grid-template-columns:minmax(230px,300px) 1fr;gap:16px;align-items:start}
+.nside,.ned{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.nside{display:flex;flex-direction:column;max-height:calc(100vh - 230px);min-height:360px;overflow:hidden}
+.nside .nhead{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--line)}
+.nside .nhead input{flex:1;min-width:0;font:inherit;font-size:13.5px;padding:7px 9px;border:1px solid var(--line-strong);border-radius:8px;background:var(--raise);color:var(--fg)}
+.nside .nhead input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.nlist{overflow:auto;flex:1;padding:4px}
+.nlist button{display:block;width:100%;text-align:left;border:0;border-radius:8px;background:none;padding:9px 10px;margin:1px 0;color:var(--fg);font-weight:400}
+.nlist button:hover{background:var(--raise)}
+.nlist button[aria-current=true]{background:var(--accent-soft)}
+.nlist .nt{display:flex;gap:6px;align-items:center;font:600 13.5px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nlist .nt .pin{color:var(--today);flex:none}
+.nlist .ns{font-size:12.5px;color:var(--muted);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nlist .nd{font-size:11.5px;color:var(--faint);margin-top:3px}
+.nlist .nlabel{font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:10px 10px 4px}
+.nlist .nnone{padding:24px 12px;color:var(--muted);font-size:13px;text-align:center}
+.ned{display:flex;flex-direction:column;min-height:360px}
+.ned .ntitle{font:700 20px var(--display);border:0;background:transparent;color:var(--fg);padding:18px 20px 6px;width:100%;box-sizing:border-box}
+.ned .ntitle:focus,.ned textarea:focus{outline:none}
+.ned textarea{flex:1;min-height:340px;resize:vertical;border:0;background:transparent;color:var(--fg);font:15px/1.6 var(--body);padding:6px 20px 16px;width:100%;box-sizing:border-box}
+.ned .nbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.ned .nbar .nst{margin-right:auto;display:inline-flex;align-items:center;gap:6px}
+.ned .nbar button{padding:6px 10px;font-size:12.5px}
+.ned .nbar button.del{color:var(--late)}
+.ned .nbar button.del.sure{background:var(--late);color:#fff;border-color:var(--late)}
+.ned .back{display:none}
+.nempty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;min-height:360px;color:var(--muted);padding:24px}
+.nempty b{color:var(--fg);font-size:16px}
+@media (max-width:760px){#notes{grid-template-columns:1fr}#notes.editing .nside{display:none}#notes:not(.editing) .ned{display:none}.ned .back{display:inline-flex}.nside{max-height:none}}
 body.boardmode .tabs{display:none}
 body.boardmode .bar{padding-block:6px}
 .board{display:grid;grid-template-columns:repeat(4,minmax(240px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px;align-items:stretch}
@@ -511,6 +600,12 @@ code{font:12px var(--mono)}
     <div class="hdr-r"><div class="hdr-tools" style="display:flex;gap:2px;align-items:center"><button type="button" class="hbtn icon" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button><button type="button" class="hbtn icon" id="redoBtn" title="Redo (Ctrl+Y)" aria-label="Redo" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button><a class="hbtn" id="signOut" href="/logout" title="Sign out of the IT Desk" hidden>Sign out</a><span class="hsep" aria-hidden="true"></span><button type="button" class="hbtn" id="reportBtn" title="Weekly report (print / PDF)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 17v-3M12 17v-5M15 17v-2"/></svg><span>Report</span></button><span class="hsep" aria-hidden="true"></span><button type="button" class="hbtn icon" id="themeBtn" title="Theme: Auto" aria-label="Theme: Auto"></button></div><span class="sync"><span class="dot" id="dot"></span><span id="sync">opening…</span></span><span class="sync2" id="sync2"></span></div>
   </header>
 
+  <nav class="spaces" id="spaces" role="tablist" aria-label="Space">
+    <button type="button" role="tab" data-space="work"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></svg>Work<span class="n" id="s-work"></span></button>
+    <button type="button" role="tab" data-space="personal"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg>Personal<span class="n" id="s-personal"></span></button>
+    <button type="button" role="tab" data-space="notes"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8.5 12h7M8.5 16h5"/></svg>Notes<span class="n" id="s-notes"></span></button>
+  </nav>
+
   <div class="connect" id="connect" hidden>
     <div id="connectMsg"></div>
     <div class="row"><button class="primary" id="openBtn">Open my list</button><button class="ghost" id="pickOther">Use a different file</button></div>
@@ -535,7 +630,7 @@ code{font:12px var(--mono)}
   <div class="ac" id="ac" role="listbox" hidden></div>
   </div>
   <div class="preview" id="preview"></div>
-  <div class="hint"><a href="#" id="helpLink" style="color:var(--accent);font-weight:600;text-decoration:none">All commands (@help or ?)</a> · Shortcuts: <code>#GC2</code> plant · <code>@SAP</code> type · <code>!fri</code> <code>!tomorrow</code> <code>!10/20</code> due · <code>~</code> waiting on someone</div>
+  <div class="hint"><a href="#" id="helpLink" style="color:var(--accent);font-weight:600;text-decoration:none">All commands (@help or ?)</a> · Shortcuts: <span class="wk"><code>#GC2</code> plant · <code>@SAP</code> type · </span><code>!fri</code> <code>!tomorrow</code> <code>!10/20</code> due · <code>~</code> waiting on someone</div>
 
   <div class="bar" id="bar">
     <div class="barl"><div class="viewsw" role="group" aria-label="View"><button type="button" data-view="list">List</button><button type="button" data-view="board">Board</button><button type="button" data-view="upcoming">Upcoming</button></div>
@@ -554,6 +649,7 @@ code{font:12px var(--mono)}
 
   <div id="list"><div class="empty">Loading your items…</div></div>
   <div id="board" class="board" hidden></div>
+  <section id="notes" aria-label="Notes"></section>
   <div id="upcoming" class="upc" hidden></div>
   <div class="toast" id="toast" hidden></div>
   <div class="selbar" id="selbar" hidden role="toolbar" aria-label="Selected items"></div>
@@ -620,6 +716,10 @@ const PLANT_COLOR={GC2:"var(--gc2)",GC3:"var(--gc3)",GCH:"var(--gch)",GNA:"var(-
 const STATUS=[["mine","To do"],["doing","Doing"],["waiting","Waiting"],["done","Done"]];
 const WIP=3;
 let view="list";try{view=localStorage.getItem("oi.view")||"list"}catch(e){}
+/* spaces: work items, personal items (escopo:"pessoal", kept out of the weekly report and the email/Teams rounds), notes */
+let space="work";try{space=localStorage.getItem("oi.space")||"work"}catch(e){}if(!["work","personal","notes"].includes(space))space="work";
+let ALL=[];const isPersonal=t=>t&&t.escopo==="pessoal";
+function setTasks(arr){ALL=arr;tasks=arr.filter(t=>space==="personal"?isPersonal(t):!isPersonal(t))}
 /* sort: board = "manual" (drag order) | "due"; list = "due" | "updated" */
 let sortBoard="manual",sortList="due";try{sortBoard=localStorage.getItem("oi.sortBoard")||"manual";sortList=localStorage.getItem("oi.sortList")||"due"}catch(e){}
 const SORTS={board:[["manual","My order","The order you set by dragging"],["due","Due date","Earliest due first; no date at the end"]],list:[["due","Due date","Grouped by Overdue, Today, Next 7 days…"],["updated","Last update","Most recent activity first"]]};
@@ -748,7 +848,7 @@ function renderReport(){
   </div>`;
   document.title="IT Weekly Report - week of "+mon;
 }
-function openReport(){rpWeek=0;renderReport();$("#report").hidden=false;document.body.classList.add("reporting");window.scrollTo(0,0)}
+function openReport(){if(space!=="work")return;rpWeek=0;renderReport();$("#report").hidden=false;document.body.classList.add("reporting");window.scrollTo(0,0)}
 function closeReport(){$("#report").hidden=true;document.body.classList.remove("reporting");document.title="IT Desk · Chattanooga"}
 $("#reportBtn").addEventListener("click",openReport);
 $("#report").addEventListener("click",ev=>{const id=ev.target.id;
@@ -789,7 +889,12 @@ function nextRef(prefix){
 
 /* render */
 function bucket(t){const s=t.prazo,d=todayISO();if(!s)return"none";if(s<d)return"late";if(s===d)return"today";if(s<=addDays(d,7))return"week";return"later"}
-function render(){{const qi=document.getElementById("q"),sb=qi&&qi.closest(".search");if(sb){if(qi.value.trim())sb.classList.add("open");else if(document.activeElement!==qi)sb.classList.remove("open")}}
+function spaceUI(){document.body.classList.remove("space-work","space-personal","space-notes");document.body.classList.add("space-"+space);
+  document.querySelectorAll("#spaces button").forEach(b=>b.setAttribute("aria-selected",b.dataset.space===space));
+  const openW=ALL.filter(t=>!isPersonal(t)&&(t.status==="mine"||t.status==="doing")).length,openP=ALL.filter(t=>isPersonal(t)&&t.status!=="done").length,nN=(meta.notas||[]).length;
+  $("#s-work").textContent=openW||"";$("#s-personal").textContent=openP||"";$("#s-notes").textContent=nN||"";
+  $("#addTitle").placeholder=space==="personal"?"Add a personal to-do…  (! due · ~ waiting · @help)":"Add an item…  (# @ ! ~ shortcuts · @help)"}
+function render(){spaceUI();if(space==="notes"){renderNotes();return}{const qi=document.getElementById("q"),sb=qi&&qi.closest(".search");if(sb){if(qi.value.trim())sb.classList.add("open");else if(document.activeElement!==qi)sb.classList.remove("open")}}
   const open=tasks.filter(t=>t.status!=="done");
   const nNew=tasks.filter(t=>freshKind(t)==="new").length,nUpd=tasks.filter(t=>freshKind(t)==="upd").length;
   if(!nNew&&!nUpd)freshOnly=false;
@@ -1018,13 +1123,14 @@ function editHTML(t){
 }
 
 /* theme toggle: auto -> light -> dark */
-const THEMES=["auto","light","dark","night","fun","future"], TLABEL={auto:"Theme: Auto (follows Windows)",light:"Theme: Light",dark:"Theme: Dark",night:"Theme: Night",fun:"Theme: Arcade",future:"Theme: Future"};
-const TMENU=[["auto","Auto","follows Windows","linear-gradient(90deg,#edf3fa 50%,#0f131a 50%)"],["light","Light","Gestamp","#edf3fa"],["dark","Dark","","#0f131a"],["night","Night","light cards","linear-gradient(90deg,#0a2540 55%,#fff 55%)"],["fun","Arcade","retro game","linear-gradient(180deg,#5c94fc 60%,#c84c0c 60%)"],["future","Future","","linear-gradient(120deg,#05070d 40%,#00e5ff)"]];
+const THEMES=["auto","light","dark","night","fun","future","quest"], TLABEL={auto:"Theme: Auto (follows Windows)",light:"Theme: Light",dark:"Theme: Dark",night:"Theme: Night",fun:"Theme: Arcade",future:"Theme: Future",quest:"Theme: Quest"};
+const TMENU=[["auto","Auto","follows Windows","linear-gradient(90deg,#edf3fa 50%,#0f131a 50%)"],["light","Light","Gestamp","#edf3fa"],["dark","Dark","","#0f131a"],["night","Night","light cards","linear-gradient(90deg,#0a2540 55%,#fff 55%)"],["fun","Arcade","retro game","linear-gradient(180deg,#5c94fc 60%,#c84c0c 60%)"],["future","Future","","linear-gradient(120deg,#05070d 40%,#00e5ff)"],["quest","Quest","adventure","linear-gradient(135deg,#14352a 50%,#f4e8c8 50%)"]];
 const TICON={auto:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
  light:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
  dark:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
  night:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none" opacity=".35"/></svg>',
  fun:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14.5s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="1" fill="currentColor" stroke="none"/></svg>',
+ quest:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>',
  future:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 15c-1.5 1.3-2 4-2 6 2 0 4.7-.5 6-2"/><path d="M9 15 6.5 12.5a14 14 0 0 1 11-9.5c.3 4-1.2 8.4-9.5 11z"/><circle cx="14.5" cy="9.5" r="1.6"/></svg>'};
 let theme="auto";try{theme=localStorage.getItem("oi.theme")||"auto"}catch(e){}if(!THEMES.includes(theme))theme="auto";
 function applyTheme(){const r=document.documentElement;if(theme==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",theme);{const b=$("#themeBtn");b.innerHTML=TICON[theme];b.title=TLABEL[theme]+" — click to change";b.setAttribute("aria-label",TLABEL[theme])}try{localStorage.setItem("oi.theme",theme)}catch(e){}}
@@ -1055,7 +1161,7 @@ function setStatus(on,msg,who){$("#dot").classList.toggle("on",on);const w=who==
   $("#sync").innerHTML=esc(msg)+(w?` <span class="who">${esc(w)}</span>`:"");
   $("#sync2").textContent=meta&&meta.conciliadoEm?"Email & Teams checked "+fmtStamp(meta.conciliadoEm).replace(" · "," at "):""}
 async function load(){
-  const{j,mod}=await readFile();lastMod=mod;tasks=Array.isArray(j.items)?j.items:[];meta=j;
+  const{j,mod}=await readFile();lastMod=mod;setTasks(Array.isArray(j.items)?j.items:[]);meta=j;
   setStatus(true,"Saved "+fmtStamp(mod),j.atualizadoPor);
   $("#connect").hidden=true;render();
 }
@@ -1103,11 +1209,11 @@ function commit(mutate){
     try{
       const{j}=await readFile();const items=Array.isArray(j.items)?j.items:[];
       const before=undoMode?null:JSON.parse(JSON.stringify(items));
-      mutate(items);
+      mutate(items,j);
       if(before){const ch=snapDiff(before,items);if(ch.length){UNDO.push(ch);if(UNDO.length>30)UNDO.shift();REDO.length=0;undoUI()}}
       const out={...j,formato:"open-items/1",atualizado:new Date().toISOString(),atualizadoPor:"Gabriel",items};
       const w=await handle.createWritable();await w.write(JSON.stringify(out,null,1));await w.close();
-      const f=await handle.getFile();lastMod=f.lastModified;tasks=items;notice("");
+      const f=await handle.getFile();lastMod=f.lastModified;setTasks(items);notice("");
       meta=out;setStatus(true,"Saved "+fmtStamp(Date.now()),"Gabriel");
       render();return true;
     }catch(e){if(e&&e.name==="Conflict"&&!run.retried){run.retried=true;return await run()}
@@ -1119,14 +1225,83 @@ function commit(mutate){
 const touch=o=>Object.assign(o,{atualizado:new Date().toISOString(),editadoPor:"Gabriel"});
 const upd=(id,patch)=>commit(items=>{const x=items.find(i=>i.id===id);if(x)touch(Object.assign(x,patch))});
 
+
+/* ---------- notes: a notepad for ideas, saved in the same file (notas:[...]) ---------- */
+let noteId=null,noteQ="",noteTimer=null,notePending=null,noteDel=false;try{noteId=localStorage.getItem("oi.note")||null}catch(e){}
+const notesAll=()=>Array.isArray(meta.notas)?meta.notas:[];
+const noteName=n=>(n.titulo||"").trim()||(n.texto||"").trim().split("\n")[0].slice(0,60)||"Untitled note";
+const noteSnip=n=>{const t=(n.texto||"").trim();const first=(n.titulo||"").trim()?t:t.split("\n").slice(1).join(" ");return first.replace(/\s+/g," ").slice(0,140)};
+function noteWhen(s){if(!s)return"";const d=new Date(s);if(isNaN(d))return"";const t=iso(d);return t===todayISO()?"Today "+fmtHM(String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")):t===addDays(todayISO(),-1)?"Yesterday":fmtShort(t)}
+function notesSorted(){const norm=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");const w=norm(noteQ).split(/\s+/).filter(Boolean);
+  return notesAll().filter(n=>w.every(x=>norm(n.titulo+" "+n.texto).includes(x))).sort((a,b)=>(b.fixo?1:0)-(a.fixo?1:0)||(b.atualizado||"").localeCompare(a.atualizado||""))}
+function renderNotes(){
+  const box=$("#notes");
+  if(!box.querySelector(".nside")){box.innerHTML=`<aside class="nside"><div class="nhead"><input type="search" id="nq" placeholder="Search notes" aria-label="Search notes" autocomplete="off"><button type="button" class="primary" id="nNew" title="New note (Alt+N)">+ New</button></div><div class="nlist" id="nlist"></div></aside><div class="ned" id="ned"></div>`;
+    $("#nq").addEventListener("input",e=>{noteQ=e.target.value;renderNoteList()});
+    $("#nNew").addEventListener("click",newNote)}
+  renderNoteList();
+  const n=notesAll().find(x=>x.id===noteId);if(!n&&noteId&&Array.isArray(meta.items))noteId=null;
+  const ed=$("#ned");
+  // never rebuild the editor under the cursor or with unsaved typing
+  if(ed.dataset.id===(noteId||"")&&(notePending||ed.contains(document.activeElement)))return;
+  ed.dataset.id=noteId||"";noteDel=false;box.classList.toggle("editing",!!n);
+  if(!n){ed.innerHTML=`<div class="nempty"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8.5 12h7M8.5 16h5"/></svg><b>${notesAll().length?"Pick a note or start a new one":"Your notepad"}</b><span>Ideas, meeting scribbles, things to remember.<br>Everything saves as you type.</span><button type="button" class="primary" data-nnew>+ New note</button></div>`;return}
+  ed.innerHTML=`<input class="ntitle" id="nTitle" placeholder="Title" aria-label="Note title" value="${esc(n.titulo||"")}">
+    <textarea id="nText" placeholder="Write anything…" aria-label="Note text">${esc(n.texto||"")}</textarea>
+    <div class="nbar"><button type="button" class="ghost back" data-nback>← Notes</button><span class="nst" id="nSt">${n.atualizado?"Saved "+esc(noteWhen(n.atualizado)):""}</span>
+      <button type="button" data-npin title="Keep this note at the top">${n.fixo?"Unpin":"Pin"}</button>
+      <button type="button" data-nitem="work" title="Create a Work to-do from this note">→ Work to-do</button>
+      <button type="button" data-nitem="personal" title="Create a Personal to-do from this note">→ Personal to-do</button>
+      <button type="button" class="del" data-ndel>Delete</button></div>`;
+  const ti=$("#nTitle"),tx=$("#nText");
+  const queue=()=>{notePending={id:n.id,titulo:ti.value,texto:tx.value};$("#nSt").textContent="Saving…";clearTimeout(noteTimer);noteTimer=setTimeout(flushNote,700)};
+  ti.addEventListener("input",queue);tx.addEventListener("input",queue);
+  ti.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();tx.focus()}});
+  [ti,tx].forEach(x=>x.addEventListener("blur",()=>{if(notePending)flushNote()}));
+}
+function renderNoteList(){const L=notesSorted(),el=$("#nlist");if(!el)return;
+  if(!L.length){el.innerHTML=`<div class="nnone">${noteQ?"No notes match.":"No notes yet."}</div>`;return}
+  const pinned=L.filter(n=>n.fixo),rest=L.filter(n=>!n.fixo);
+  const row=n=>`<button type="button" data-note="${esc(n.id)}" aria-current="${n.id===noteId}"><div class="nt">${n.fixo?'<span class="pin" aria-label="Pinned">★</span>':""}${esc(noteName(n))}</div>${noteSnip(n)?`<div class="ns">${esc(noteSnip(n))}</div>`:""}<div class="nd">${esc(noteWhen(n.atualizado||n.criado))}</div></button>`;
+  el.innerHTML=(pinned.length?`<div class="nlabel">Pinned</div>`+pinned.map(row).join("")+(rest.length?`<div class="nlabel">Notes</div>`:""):"")+rest.map(row).join("")}
+async function flushNote(){clearTimeout(noteTimer);const p=notePending;if(!p)return;notePending=null;
+  const ok=await commit((items,j)=>{const n=(j.notas||(j.notas=[])).find(x=>x.id===p.id);if(!n)return;n.titulo=p.titulo;n.texto=p.texto;n.atualizado=new Date().toISOString()});
+  const st=document.getElementById("nSt");if(st&&!notePending)st.textContent=ok?"Saved "+noteWhen(new Date().toISOString()):"Not saved — check the file connection";renderNoteList()}
+async function newNote(){if(notePending)await flushNote();const now=new Date().toISOString(),id="n-"+Date.now().toString(36);
+  if(await commit((items,j)=>{(j.notas||(j.notas=[])).push({id,titulo:"",texto:"",fixo:false,criado:now,atualizado:now})})){noteId=id;try{localStorage.setItem("oi.note",id)}catch(e){}noteQ="";const q=$("#nq");if(q)q.value="";$("#ned").dataset.id="";renderNotes();$("#nTitle").focus()}}
+async function openNote(id){if(notePending)await flushNote();noteId=id;try{localStorage.setItem("oi.note",id||"")}catch(e){}$("#ned").dataset.id="__";renderNotes()}
+$("#notes").addEventListener("click",async ev=>{
+  const b=ev.target.closest("[data-note]");if(b){openNote(b.dataset.note);return}
+  if(ev.target.closest("[data-nnew]")){newNote();return}
+  if(ev.target.closest("[data-nback]")){if(notePending)await flushNote();noteId=null;$("#ned").dataset.id="__";renderNotes();return}
+  if(ev.target.closest("[data-npin]")){if(notePending)await flushNote();const id=noteId;await commit((items,j)=>{const n=(j.notas||[]).find(x=>x.id===id);if(n){n.fixo=!n.fixo;n.atualizado=new Date().toISOString()}});$("#ned").dataset.id="__";renderNotes();return}
+  const d=ev.target.closest("[data-ndel]");if(d){if(!noteDel){noteDel=true;d.classList.add("sure");d.textContent="Click again to delete";setTimeout(()=>{if(d.isConnected){noteDel=false;d.classList.remove("sure");d.textContent="Delete"}},4000);return}
+    clearTimeout(noteTimer);notePending=null;const id=noteId;const keep=notesAll().find(x=>x.id===id);
+    if(await commit((items,j)=>{j.notas=(j.notas||[]).filter(x=>x.id!==id)})){noteId=null;$("#ned").dataset.id="__";renderNotes();toast("Note deleted: "+noteName(keep||{}))}return}
+  const it=ev.target.closest("[data-nitem]");if(it){if(notePending)await flushNote();const n=notesAll().find(x=>x.id===noteId);if(!n)return;
+    const pers=it.dataset.nitem==="personal",now=new Date().toISOString(),body=(n.texto||"").trim();
+    const title=noteName(n).slice(0,140);let ref="";
+    const ok=await commit(items=>{ref=nextRefIn(items,pers?"H":"P");const doc={id:ref.toLowerCase(),ref,titulo:title,status:"mine",tipo:pers?"Personal":"Project",planta:"—",prazo:"",prazoNota:"",quem:"",proximo:"",fonte:"Note",
+      desde:todayISO(),criado:now,atualizado:now,fechado:"",log:body&&body!==title?[{d:todayISO(),h:nowHM(),t:"From note: "+body.replace(/\s+/g," ").slice(0,400),por:"Gabriel"}]:[],relacionados:[],editadoPor:"Gabriel"};
+      if(pers)doc.escopo="pessoal";items.push(doc)});
+    if(ok)toast(`Added ${ref} to ${pers?"Personal":"Work"} · To do`);return}
+});
+document.addEventListener("keydown",ev=>{if(ev.altKey&&!ev.ctrlKey&&(ev.key==="n"||ev.key==="N")&&space==="notes"){ev.preventDefault();newNote()}
+  if(ev.altKey&&!ev.ctrlKey&&["1","2","3"].includes(ev.key)){ev.preventDefault();setSpace(["work","personal","notes"][+ev.key-1])}});
+async function setSpace(sp){if(sp===space)return;if(notePending)await flushNote();space=sp;try{localStorage.setItem("oi.space",sp)}catch(e){}
+  q="";const qi=$("#q");if(qi)qi.value="";tri=null;fPlant=fType=null;openId=null;SEL.clear();setTasks(ALL);render();window.scrollTo(0,0)}
+$("#spaces").addEventListener("click",ev=>{const b=ev.target.closest("[data-space]");if(b)setSpace(b.dataset.space)});
+window.addEventListener("beforeunload",()=>{if(notePending)flushNote()});
+
 function notice(m){$("#notice").textContent=m||"";$("#notice").hidden=!m}
 $("#addForm").addEventListener("submit",async ev=>{
   ev.preventDefault();
   if(/(^|\s)@help\b/i.test($("#addTitle").value)){$("#addTitle").value=$("#addTitle").value.replace(/(^|\s)@help\b/ig," ").trim();$("#preview").innerHTML="";openHelp();return}
   const p=parse($("#addTitle").value); if(!p.titulo)return;
-  const now=new Date().toISOString(), ref=nextRef(p.status==="waiting"?"A":"P");
+  const now=new Date().toISOString(), ref=nextRef(space==="personal"?"H":p.status==="waiting"?"A":"P");
   const doc={id:ref.toLowerCase(),titulo:p.titulo,status:p.status,tipo:p.tipo||"Project",planta:p.planta||"—",prazo:p.prazo,prazoNota:"",quem:"",proximo:"",fonte:"Manual",
     ref,desde:todayISO(),criado:now,atualizado:now,fechado:"",log:[],relacionados:[],editadoPor:"Gabriel"};
+  if(space==="personal"){doc.escopo="pessoal";doc.tipo=p.tipo||"Personal";doc.planta="—"}
   $("#addBtn").disabled=true;
   if(await commit(items=>{if(items.some(i=>i.id===doc.id)){const r=nextRefIn(items,ref[0]);doc.ref=r;doc.id=r.toLowerCase()}items.push(doc)})){$("#addTitle").value="";$("#preview").innerHTML="";}
   $("#addBtn").disabled=false;$("#addTitle").focus();
@@ -1250,7 +1425,7 @@ $("#board").addEventListener("drop",async ev=>{const col=colAt($("#board"),ev);i
   });
 });
 /* pick up changes Claude wrote to the file while this tab was open */
-async function refreshIfChanged(){if(!handle)return;try{const f=await handle.getFile();if(f.lastModified!==lastMod&&!openId)await load()}catch(e){}}
+async function refreshIfChanged(){if(!handle)return;try{const f=await handle.getFile();if(f.lastModified!==lastMod&&!openId&&!notePending)await load()}catch(e){}}
 window.addEventListener("focus",refreshIfChanged);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshIfChanged()});
 setInterval(refreshIfChanged,60000);
