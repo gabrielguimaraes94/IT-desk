@@ -662,6 +662,9 @@ code{font:12px var(--mono)}
       <div><h3>Keyboard</h3><dl>
         <dt><kbd>/</kbd></dt><dd>Jump to search</dd>
         <dt><kbd>?</kbd></dt><dd>Open this help</dd>
+        <dt><kbd>U</kbd></dt><dd>Show only what you haven't reviewed yet</dd>
+        <dt><kbd>Ctrl</kbd> <kbd>S</kbd></dt><dd>Save the open card or note</dd>
+        <dt><kbd>Alt</kbd> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Work · Personal · Notes</dd>
         <dt><kbd>Esc</kbd></dt><dd>Clear search / close windows</dd>
         <dt><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd></dt><dd>Pick an autocomplete option <small>(or Tab)</small></dd>
         <dt><kbd>Enter</kbd> in log</dt><dd>Add a work log line (time stamped)</dd></dl></div>
@@ -740,9 +743,20 @@ const fmtStamp=v=>{if(!v)return"";const d=new Date(v);if(isNaN(d))return"";const
   const day=k===t?"Today":k===addDays(t,-1)?"Yesterday":d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
   return day+" · "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})};
 /* items Claude created/updated in the last round (cleared once Gabriel edits them) */
-function freshKind(t){if(!meta.conciliadoEm||t.editadoPor!=="Claude")return"";const c=+new Date(meta.conciliadoEm);
-  if(Math.abs(+new Date(t.criado)-c)<6e5)return"new";if(Math.abs(+new Date(t.atualizado)-c)<6e5)return"upd";return""}
-const freshTag=t=>{const k=freshKind(t);return k?`<span class="fresh${k==="upd"?" upd":""}" title="${k==="new"?"Picked up":"Updated"} from your email/Teams at the last check-in">${k==="new"?"new":"updated"}</span>`:""};
+/* unreviewed = changed by Claude (email/Teams) after you last looked at it.
+   Opening an item marks it reviewed (visto); "Mark all reviewed" moves the baseline (vistoBase). */
+const ms=x=>{const n=+new Date(x||0);return isNaN(n)?0:n};
+function reviewBase(){return meta.vistoBase?ms(meta.vistoBase):meta.conciliadoEm?ms(meta.conciliadoEm)-6e5:0}
+function freshKind(t){if(!t||isPersonal(t)||t.editadoPor!=="Claude")return"";const at=ms(t.atualizado||t.criado);
+  if(at<=Math.max(ms(t.visto),reviewBase()))return"";
+  return !t.visto&&Math.abs(ms(t.criado)-at)<6e5?"new":"upd"}
+const seenNow=new Set();let seenBusy=new Set();
+function markSeen(id){const t=tasks.find(x=>x.id===id);if(!t||!freshKind(t)||seenBusy.has(id))return;seenBusy.add(id);seenNow.add(id);
+  commit(items=>{const x=items.find(z=>z.id===id);if(x)x.visto=new Date().toISOString()},{noUndo:true}).finally(()=>seenBusy.delete(id))}
+async function markAllSeen(){const n=tasks.filter(t=>freshKind(t)).length;if(!n)return;
+  tasks.filter(t=>freshKind(t)).forEach(t=>seenNow.add(t.id));
+  if(await commit((items,j)=>{j.vistoBase=new Date().toISOString()},{noUndo:true}))toast(n+" item"+(n===1?"":"s")+" marked as reviewed")}
+const freshTag=t=>{const k=freshKind(t);return k?`<span class="fresh${k==="upd"?" upd":""}" title="${k==="new"?"New from your email/Teams":"Updated from your email/Teams"} — not reviewed yet. Opening it marks it reviewed.">${k==="new"?"new":"updated"}</span>`:""};
 const AVC=["var(--gc2)","var(--gc3)","var(--gch)","var(--gna)","var(--accent)","var(--today)"];
 const initials=n=>{const w=String(n||"").replace(/\(.*?\)/g,"").split(/[\s\/]+/).filter(x=>/^[A-Za-zÀ-ÿ]/.test(x));return((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase()};
 const avatar=n=>{if(!n)return"";let h=0;for(const ch of n)h=(h*31+ch.charCodeAt(0))>>>0;return`<span class="who2" title="${esc(n)}"><span class="av" style="--c:${AVC[h%AVC.length]}">${esc(initials(n))}</span></span>`};
@@ -881,9 +895,11 @@ function spaceUI(){document.body.classList.remove("space-work","space-personal",
 function render(){spaceUI();if(space==="notes"){renderNotes();return}{const qi=document.getElementById("q"),sb=qi&&qi.closest(".search");if(sb){if(qi.value.trim())sb.classList.add("open");else if(document.activeElement!==qi)sb.classList.remove("open")}}
   const open=tasks.filter(t=>t.status!=="done");
   const nNew=tasks.filter(t=>freshKind(t)==="new").length,nUpd=tasks.filter(t=>freshKind(t)==="upd").length;
-  if(!nNew&&!nUpd)freshOnly=false;
-  $("#roundbar").hidden=!(nNew||nUpd);
-  if(nNew||nUpd)$("#roundbar").innerHTML=`<span>From your email & Teams (${esc(fmtStamp(meta.conciliadoEm).replace(" · "," at "))}): <b>${nNew}</b> new item${nNew===1?"":"s"} and <b>${nUpd}</b> update${nUpd===1?"":"s"}</span><button type="button" id="freshBtn" aria-pressed="${freshOnly}">${freshOnly?"Show everything":"Just these"}</button>`;
+  if(!nNew&&!nUpd&&!seenNow.size)freshOnly=false;
+  $("#roundbar").hidden=!(nNew||nUpd||freshOnly);
+  if(nNew||nUpd||freshOnly)$("#roundbar").innerHTML=(nNew||nUpd?`<span>Not reviewed yet: ${[nNew?`<b>${nNew}</b> new`:"",nUpd?`<b>${nUpd}</b> updated`:""].filter(Boolean).join(" and ")} from your email & Teams</span>`:`<span>All reviewed.</span>`)
+    +`<button type="button" id="freshBtn" aria-pressed="${freshOnly}" title="Shortcut: U">${freshOnly?"Show everything":"Show unreviewed"}</button>`
+    +(nNew||nUpd?`<button type="button" id="seenAll" title="Clear the new/updated tags on everything">Mark all reviewed</button>`:"");
   const cnt={late:open.filter(t=>bucket(t)==="late").length,today:open.filter(t=>bucket(t)==="today").length,
     week:open.filter(t=>bucket(t)==="week").length,waiting:tasks.filter(t=>t.status==="waiting").length};
   {const doing=tasks.filter(t=>t.status==="doing").length,parts=[];
@@ -899,7 +915,7 @@ function render(){spaceUI();if(space==="notes"){renderNotes();return}{const qi=d
   const hay=t=>norm([t.ref,t.titulo,t.proximo,t.quem,t.planta,t.tipo,t.fonte,t.prazoNota,(t.relacionados||[]).join(" "),(t.log||[]).map(l=>l.t).join(" ")].join(" "));
   let pool=terms.length?tasks.filter(t=>terms.every(w=>hay(t).includes(w))):tri==="waiting"?tasks.filter(t=>t.status==="waiting"):tri?open.filter(t=>bucket(t)===tri):tasks.filter(t=>tab==="mine"?(t.status==="mine"||t.status==="doing"):t.status===tab);
   if((view==="board"||view==="upcoming")&&!terms.length&&!tri) pool=tasks.slice();
-  if(freshOnly) pool=tasks.filter(t=>freshKind(t));
+  if(freshOnly) pool=tasks.filter(t=>freshKind(t)||seenNow.has(t.id));
   const plants=[...new Set(pool.map(t=>t.planta).filter(p=>p&&p!=="—"))].sort();
   const types=[...new Set(pool.map(t=>t.tipo).filter(Boolean))].sort();
   $("#filters").innerHTML=plants.map(p=>`<button class="chip" data-fp="${esc(p)}" aria-pressed="${fPlant===p}"><span class="swatch" style="--c:${PLANT_COLOR[p]||"var(--reg)"}"></span>${esc(p)}</button>`).join("")
@@ -911,7 +927,7 @@ function render(){spaceUI();if(space==="notes"){renderNotes();return}{const qi=d
   document.querySelectorAll(".viewsw button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===view));
   $("#list").hidden=view!=="list"; $("#board").hidden=view!=="board"; $("#upcoming").hidden=view!=="upcoming";
   document.body.classList.toggle("boardmode",view==="board"); document.body.classList.toggle("upcmode",view==="upcoming");
-  renderModal();sortUI();
+  renderModal();sortUI();if(openId)markSeen(openId);
   if(view==="board"){renderBoard(rows,!!terms.length);return}
   if(view==="upcoming"){renderUpcoming(terms.length||tri||freshOnly||fPlant||fType?rows:tasks.filter(t=>(!fPlant||t.planta===fPlant)&&(!fType||t.tipo===fType)));return}
   const isDone=!terms.length&&!tri&&tab==="done";
@@ -1186,12 +1202,12 @@ document.getElementById("undoBtn").addEventListener("click",()=>undoRedo("undo")
 document.addEventListener("keydown",ev=>{if(!(ev.ctrlKey||ev.metaKey)||ev.altKey)return;const k=ev.key.toLowerCase();
   if(ev.target.closest&&ev.target.closest("input,textarea,select,[contenteditable=true]"))return;
   if(k==="z"&&!ev.shiftKey){ev.preventDefault();undoRedo("undo")}else if(k==="y"||(k==="z"&&ev.shiftKey)){ev.preventDefault();undoRedo("redo")}});
-function commit(mutate){
+function commit(mutate,opts){
   const run=async()=>{
     if(!handle){notice("Open your list file first.");return false}
     try{
       const{j}=await readFile();const items=Array.isArray(j.items)?j.items:[];
-      const before=undoMode?null:JSON.parse(JSON.stringify(items));
+      const before=undoMode||(opts&&opts.noUndo)?null:JSON.parse(JSON.stringify(items));
       mutate(items,j);
       if(before){const ch=snapDiff(before,items);if(ch.length){UNDO.push(ch);if(UNDO.length>30)UNDO.shift();REDO.length=0;undoUI()}}
       const out={...j,formato:"open-items/1",atualizado:new Date().toISOString(),atualizadoPor:"Gabriel",items};
@@ -1356,7 +1372,10 @@ document.addEventListener("keydown",ev=>{
   if(ev.key==="Escape"&&!$("#help").hidden){closeHelp();return}
   if(ev.key==="Escape"&&!$("#report").hidden){closeReport();return}
   if(ev.key==="?"&&!ev.target.matches("input,textarea,select")){ev.preventDefault();openHelp()}});
-document.addEventListener("click",ev=>{if(ev.target.id==="freshBtn"){freshOnly=!freshOnly;tri=null;q="";$("#q").value="";openId=null;render()}});
+document.addEventListener("click",ev=>{if(ev.target.id==="freshBtn"){freshOnly=!freshOnly;if(!freshOnly)seenNow.clear();tri=null;q="";$("#q").value="";openId=null;render()}
+  if(ev.target.id==="seenAll")markAllSeen()});
+document.addEventListener("keydown",ev=>{if(ev.ctrlKey||ev.metaKey||ev.altKey||(ev.key!=="u"&&ev.key!=="U"))return;if(ev.target.closest&&ev.target.closest("input,textarea,select,[contenteditable=true]"))return;
+  if(space==="notes")return;ev.preventDefault();$("#freshBtn")?$("#freshBtn").click():toast("Nothing new to review")});
 document.addEventListener("keydown",ev=>{if(ev.target.id!=="e-logedit")return;if(ev.key==="Enter"){ev.preventDefault();document.querySelector('[data-act="logsave"]')?.click()}else if(ev.key==="Escape"){ev.preventDefault();ev.stopPropagation();logEdit=null;render()}});
 document.addEventListener("keydown",ev=>{if(ev.key==="Enter"&&ev.target.id==="e-link"){ev.preventDefault();document.querySelector('[data-act="addlink"]').click();return}
   if(ev.key==="Enter"&&ev.target.id==="e-log"){ev.preventDefault();document.querySelector('[data-act="addlog"]').click();return}});
