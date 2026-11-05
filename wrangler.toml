@@ -1,0 +1,18 @@
+name = "itdesk"
+main = "src/worker.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "itdesk"
+database_id = "5e13aebe-1f59-4b3b-a4fe-b4054cdd37e1"
+
+[vars]
+TEAM_DOMAIN = "COLE_AQUI.cloudflareaccess.com"
+ACCESS_AUD = "COLE_AQUI_O_AUD_DA_APLICACAO_ACCESS"
