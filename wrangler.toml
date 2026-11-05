@@ -14,5 +14,5 @@ database_name = "itdesk"
 database_id = "5e13aebe-1f59-4b3b-a4fe-b4054cdd37e1"
 
 [vars]
-TEAM_DOMAIN = "COLE_AQUI.cloudflareaccess.com"
-ACCESS_AUD = "COLE_AQUI_O_AUD_DA_APLICACAO_ACCESS"
+TEAM_DOMAIN = "purple-bonus-ec67.cloudflareaccess.com"
+ACCESS_AUD = "25889c94a8dc6a7ea085c5386a01e6d39c2163466e91e54842da9b46c42e5125"
