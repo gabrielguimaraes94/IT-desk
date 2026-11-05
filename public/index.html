@@ -353,6 +353,15 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .viewsw button{border:0;border-radius:0;padding:6px 12px;background:transparent;color:var(--muted);font-weight:600}
 .viewsw button[aria-pressed=true]{background:var(--fg);color:var(--bg)}
 .barl{display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex:1 1 100%}
+.sortsw{display:inline-flex;align-items:center;gap:2px;margin-left:auto;font-size:12.5px;color:var(--muted)}
+.sortsw .sl{display:inline-flex;align-items:center;gap:5px;margin-right:4px;font-weight:600}
+.sortsw button{border:1px solid transparent;background:transparent;color:var(--muted);font:inherit;font-weight:600;padding:4px 9px;border-radius:7px;cursor:pointer}
+.sortsw button:hover{color:var(--fg);background:var(--raise)}
+.sortsw button[aria-pressed=true]{color:var(--fg);background:var(--surface);border-color:var(--line)}
+:root[data-theme="night"] .sortsw button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+:root[data-theme="fun"] .sortsw button[aria-pressed=true]{background:#e52521;color:#fff;border:2px solid #000;border-radius:4px}
+:root[data-theme="future"] .sortsw button[aria-pressed=true]{box-shadow:0 0 8px var(--accent)}
+.sortsw[hidden]{display:none}
 body.boardmode .wrap{max-width:1280px}
 body.boardmode .tabs{display:none}
 body.boardmode .bar{padding-block:6px}
@@ -539,6 +548,7 @@ code{font:12px var(--mono)}
     <input type="search" id="q" placeholder="Search items, people, POs, log…" aria-label="Search items" autocomplete="off">
     <button type="button" class="clear" id="qClear" hidden>Clear</button></label></div>
     <div class="filters" id="filters"></div>
+    <div class="sortsw" id="sortsw" role="group" aria-label="Sort"></div>
   </div>
   <div class="searchinfo" id="qInfo" hidden></div>
 
@@ -610,6 +620,13 @@ const PLANT_COLOR={GC2:"var(--gc2)",GC3:"var(--gc3)",GCH:"var(--gch)",GNA:"var(-
 const STATUS=[["mine","To do"],["doing","Doing"],["waiting","Waiting"],["done","Done"]];
 const WIP=3;
 let view="list";try{view=localStorage.getItem("oi.view")||"list"}catch(e){}
+/* sort: board = "manual" (drag order) | "due"; list = "due" | "updated" */
+let sortBoard="manual",sortList="due";try{sortBoard=localStorage.getItem("oi.sortBoard")||"manual";sortList=localStorage.getItem("oi.sortList")||"due"}catch(e){}
+const SORTS={board:[["manual","My order","The order you set by dragging"],["due","Due date","Earliest due first; no date at the end"]],list:[["due","Due date","Grouped by Overdue, Today, Next 7 days…"],["updated","Last update","Most recent activity first"]]};
+const lastTouch=t=>{const l=(t.log||[]).slice(-1)[0];const a=l?l.d+"T"+(l.h||"00:00"):"";const b=(t.atualizado||"").slice(0,16);return a>b?a:b};
+const byDue=(a,b)=>(a.prazo||"9999").localeCompare(b.prazo||"9999")||(hasOrd(a)&&hasOrd(b)?a.ordem-b.ordem:0)||(a.ref||"").localeCompare(b.ref||"");
+function sortUI(){const el=$("#sortsw");const opts=view==="board"?SORTS.board:view==="list"&&!(tab==="done"&&!tri&&!q.trim())?SORTS.list:null;el.hidden=!opts;if(!opts)return;const cur=view==="board"?sortBoard:sortList;
+  el.innerHTML=`<span class="sl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>Sort</span>`+opts.map(([k,l,h])=>`<button type="button" data-sort="${k}" aria-pressed="${k===cur}" title="${h}">${l}</button>`).join("")}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const openGroups=new Set();
@@ -805,11 +822,12 @@ function render(){{const qi=document.getElementById("q"),sb=qi&&qi.closest(".sea
   document.querySelectorAll(".viewsw button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===view));
   $("#list").hidden=view!=="list"; $("#board").hidden=view!=="board"; $("#upcoming").hidden=view!=="upcoming";
   document.body.classList.toggle("boardmode",view==="board"); document.body.classList.toggle("upcmode",view==="upcoming");
-  renderModal();
+  renderModal();sortUI();
   if(view==="board"){renderBoard(rows,!!terms.length);return}
   if(view==="upcoming"){renderUpcoming(terms.length||tri||freshOnly||fPlant||fType?rows:tasks.filter(t=>(!fPlant||t.planta===fPlant)&&(!fType||t.tipo===fType)));return}
   const isDone=!terms.length&&!tri&&tab==="done";
   if(isDone) rows.sort((a,b)=>(b.fechado||"").localeCompare(a.fechado||""));
+  else if(sortList==="updated") rows.sort((a,b)=>lastTouch(b).localeCompare(lastTouch(a))||(a.ref||"").localeCompare(b.ref||""));
   else rows.sort((a,b)=>(a.prazo||"9999").localeCompare(b.prazo||"9999")||(a.ref||"").localeCompare(b.ref||""));
   if(!rows.length){
     $("#list").innerHTML=`<div class="empty">${!tasks.length?"No items yet. Type the first one in the box above and press Enter.":q?"No items match your search.":tri?"All clear here.":"Nothing matches these filters."}</div>`;return;
@@ -822,6 +840,7 @@ function render(){{const qi=document.getElementById("q"),sb=qi&&qi.closest(".sea
     $("#list").innerHTML=order.map(g=>{const items=rows.filter(t=>grp(t)===g);const shut=g!=="w0"&&g!=="w1"&&!openGroups.has(g);
       return `<button type="button" class="group dgrp" data-grp="${g}" aria-expanded="${!shut}">${shut?"▸":"▾"} ${label(g)}<span class="c">${items.length}</span></button>${shut?"":`<ul>${items.map(itemHTML).join("")}</ul>`}`}).join("");
     return}
+  if(sortList==="updated"){$("#list").innerHTML=`<div class="group">Most recent activity first<span class="c">${rows.length}</span></div><ul>${rows.map(itemHTML).join("")}</ul>`;return}
   const names={late:"Overdue",today:"Today",week:"Next 7 days",later:"Later",none:"No due date"};
   let html="";
   for(const b of ["late","today","week","later","none"]){
@@ -851,7 +870,7 @@ function renderBoard(rows,searching){
     let items=rows.filter(t=>t.status===k);
     let older=0;
     if(k==="done"&&!searching){const all=items.length;items=items.filter(t=>(t.fechado||"")>=wk).sort((a,b)=>(b.fechado||"").localeCompare(a.fechado||"")||(b.atualizado||"").localeCompare(a.atualizado||"")).slice(0,8);older=all-items.length}
-    items.sort(k==="done"?(a,b)=>(b.fechado||"").localeCompare(a.fechado||""):boardOrder);
+    items.sort(k==="done"?(a,b)=>(b.fechado||"").localeCompare(a.fechado||""):sortBoard==="due"?byDue:boardOrder);
     const over=k==="doing"&&items.length>WIP;
     return `<section class="col${over?" wip":""}" data-col="${k}"><div class="colh">${l}<span class="c">${items.length}</span>${k==="doing"?(over?`<span class="lim over" title="More than ${WIP} items in Doing — finish or move one">Over max ${WIP}</span>`:`<span class="lim">max ${WIP}</span>`):k==="done"&&!searching?`<span class="lim">recent</span>`:""}</div>
       <div class="cards">${items.length?items.map(cardHTML).join(""):`<div class="colempty">${k==="doing"?"What are you working on right now? Drag it here.":k==="waiting"?"Not waiting on anyone. Nice.":k==="done"?"Nothing finished yet this week.":"Nothing to do here."}</div>`}${older>0?`<button type="button" class="more" data-goto="done">+${older} older in Done list</button>`:""}</div></section>`;
@@ -1191,6 +1210,8 @@ document.addEventListener("keydown",ev=>{
 });
 document.addEventListener("keydown",ev=>{if((ev.key==="Enter"||ev.key===" ")&&ev.target.matches(".title[data-act=open]")){ev.preventDefault();ev.target.click()}});
 
+$("#sortsw").addEventListener("click",ev=>{const b=ev.target.closest("[data-sort]");if(!b)return;const k=b.dataset.sort;
+  if(view==="board"){sortBoard=k;try{localStorage.setItem("oi.sortBoard",k)}catch(e){}}else{sortList=k;try{localStorage.setItem("oi.sortList",k)}catch(e){}}render()});
 document.querySelectorAll(".viewsw button").forEach(b=>b.addEventListener("click",()=>{view=b.dataset.view;openId=null;try{localStorage.setItem("oi.view",view)}catch(e){}render()}));
 $("#board").addEventListener("click",ev=>{if(ev.target.closest("a"))return;const c=ev.target.closest(".card");if(c)c.focus()});
 $("#board").addEventListener("dblclick",ev=>{if(ev.target.closest("a,button"))return;const c=ev.target.closest(".card");if(c){openId=c.dataset.id;confirmDel=null;render()}});
@@ -1218,6 +1239,7 @@ $("#board").addEventListener("drop",async ev=>{const col=colAt($("#board"),ev);i
   const k=col.dataset.col,id=dragId,{cards,i}=dropIndex(col,ev.clientY);clearMarks();dragId=null;
   if(SEL.size>1&&SEL.has(id)){const ids=[...SEL];SEL.clear();selUI();await moveMany(ids,k);return}
   if(k==="done"){await moveTo(id,k);return}
+  if(sortBoard==="due"){const t=tasks.find(x=>x.id===id);if(t&&t.status===k){toast("Sorted by due date. Switch Sort to \u201cMy order\u201d to reorder by dragging.");return}await moveTo(id,k);return}
   const order=cards.map(c=>c.dataset.id);order.splice(i,0,id);
   const t=tasks.find(x=>x.id===id);if(!t)return;
   await commit(items=>{
