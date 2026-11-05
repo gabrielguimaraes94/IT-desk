@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>IT Desk · Sign in</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23064169'/%3E%3Ctext x='32' y='42' font-family='Segoe UI,Arial,sans-serif' font-size='28' font-weight='700' fill='white' text-anchor='middle'%3EIT%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{--navy:#064169;--navy2:#0a2540;--ink:#13263a;--mute:#5b6b7d;--line:#cfd9e4;--bg:#eef4fb;--card:#fff;--err:#b42318;--errbg:#fdecea;--focus:#2f7fd1}
+@media (prefers-color-scheme:dark){:root{--ink:#e6edf5;--mute:#9fb0c3;--line:#2a3f57;--bg:#0b1726;--card:#12233a;--err:#ff8a80;--errbg:#3a1a1a;--focus:#6aa9ec}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"IBM Plex Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;min-height:100%}
+.top{background:linear-gradient(135deg,var(--navy2),var(--navy));padding:34px 16px 70px;text-align:center}
+.top img{height:30px;width:auto;display:block;margin:0 auto 14px}
+.top .t{color:#cfe2f5;font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+main{flex:1;display:flex;justify-content:center;align-items:flex-start;padding:0 16px 40px;margin-top:-46px}
+.card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 24px 22px;box-shadow:0 10px 30px rgba(6,65,105,.14)}
+h1{font-size:21px;margin:0 0 4px;font-weight:700}
+.sub{color:var(--mute);font-size:14px;margin:0 0 20px;line-height:1.45}
+label{display:block;font-size:13px;font-weight:600;margin:0 0 6px}
+.f{margin-bottom:15px}
+input{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--ink)}
+input:focus{outline:2px solid var(--focus);outline-offset:1px;border-color:transparent}
+.pw{position:relative}
+.pw input{padding-right:62px}
+.eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--mute);font:inherit;font-size:13px;font-weight:600;padding:6px 8px;cursor:pointer;border-radius:6px}
+.eye:hover{color:var(--ink)}
+.hint{font-size:12px;color:var(--mute);margin-top:5px}
+button.go{width:100%;font:inherit;font-size:15px;font-weight:600;padding:12px;border:0;border-radius:9px;background:var(--navy);color:#fff;cursor:pointer;margin-top:4px}
+button.go:hover{background:#0b5288}
+button.go:disabled{opacity:.6;cursor:default}
+.err{display:none;background:var(--errbg);color:var(--err);font-size:13.5px;padding:9px 11px;border-radius:8px;margin-bottom:14px}
+.err.on{display:block}
+.foot{text-align:center;color:var(--mute);font-size:12px;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="top"><img src="/wordmark.png" alt="Gestamp"><div class="t">IT Desk</div></div>
+<main>
+  <form class="card" id="f" novalidate>
+    <h1 id="h">Sign in</h1>
+    <p class="sub" id="sub">Use your IT Desk e-mail and password.</p>
+    <div class="err" id="err" role="alert"></div>
+    <div class="f"><label for="email">E-mail</label><input id="email" type="email" autocomplete="username" required></div>
+    <div class="f"><label for="pw">Password</label><div class="pw"><input id="pw" type="password" autocomplete="current-password" required><button type="button" class="eye" data-for="pw">Show</button></div><div class="hint" id="pwHint" hidden>At least 10 characters.</div></div>
+    <div class="f" id="pw2Row" hidden><label for="pw2">Confirm password</label><div class="pw"><input id="pw2" type="password" autocomplete="new-password"><button type="button" class="eye" data-for="pw2">Show</button></div></div>
+    <div class="f" id="codeRow" hidden><label for="code">Setup code</label><input id="code" type="password" autocomplete="off"><div class="hint">The <b>syncKey</b> value in <code>Secretary\cloud\cloud-config.json</code>. Needed only once.</div></div>
+    <button class="go" id="go" type="submit">Sign in</button>
+    <p class="foot">Stays signed in on this device for 30 days.</p>
+  </form>
+</main>
+<script>
+const $=s=>document.querySelector(s);let setup=false;
+function err(t){const e=$("#err");e.textContent=t||"";e.classList.toggle("on",!!t)}
+document.querySelectorAll(".eye").forEach(b=>b.onclick=()=>{const i=$("#"+b.dataset.for);const v=i.type==="password";i.type=v?"text":"password";b.textContent=v?"Hide":"Show"});
+fetch("/api/auth/state",{cache:"no-store"}).then(r=>r.json()).then(j=>{
+  setup=!!j.setup;if(!setup)return;
+  $("#h").textContent="Create your account";$("#sub").textContent="First time here: choose the e-mail and password you will use to sign in.";
+  $("#pw").autocomplete="new-password";$("#pwHint").hidden=false;$("#pw2Row").hidden=false;$("#codeRow").hidden=false;$("#go").textContent="Create account";
+}).catch(()=>{});
+$("#f").onsubmit=async e=>{
+  e.preventDefault();err("");
+  const email=$("#email").value.trim(),password=$("#pw").value;
+  if(!email||!password)return err("Enter your e-mail and password.");
+  if(setup){if(password.length<10)return err("Password must have at least 10 characters.");if(password!==$("#pw2").value)return err("The two passwords are different.");if(!$("#code").value.trim())return err("Enter the setup code.")}
+  const b=$("#go");b.disabled=true;const old=b.textContent;b.textContent=setup?"Creating…":"Signing in…";
+  try{
+    const r=await fetch(setup?"/api/auth/setup":"/api/auth/login",{method:"POST",headers:{"content-type":"application/json"},credentials:"same-origin",body:JSON.stringify(setup?{email,password,code:$("#code").value.trim()}:{email,password})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.ok){location.replace("/");return}
+    err(j.error||"Could not sign in ("+r.status+").");
+  }catch(x){err("No connection. Try again.")}
+  b.disabled=false;b.textContent=old;
+};
+</script>
+</body>
+</html>

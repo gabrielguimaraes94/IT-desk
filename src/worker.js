@@ -1,10 +1,10 @@
 // IT Desk — Cloudflare Worker
 //   D1 binding: DB
-//   secret:     SYNC_KEY (PC sync script)
-//   variables:  TEAM_DOMAIN (e.g. gabriel.cloudflareaccess.com), ACCESS_AUD (Access application AUD tag)
-//   Login: Cloudflare Access in front of the whole worker (Google account or e-mail code).
-//   The PC script passes Access with a service token and writes with X-Sync-Key.
-// Protect the whole worker with Cloudflare Access. Requests without an Access token are refused.
+//   secret:     SYNC_KEY (PC sync script; also the one-time code to create the first account)
+//   optional:   TEAM_DOMAIN + ACCESS_AUD (Cloudflare Access, if it stays in front of the worker)
+//   Login: own e-mail + password screen (/login). Passwords are stored only as PBKDF2-SHA256 hashes.
+//   Sessions: random token in an HttpOnly, Secure, SameSite=Strict cookie, 30 days.
+//   The PC script writes with X-Sync-Key.
 const J = (o, s = 200, h = {}) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...h } });
 
 async function init(db) {
@@ -69,14 +69,115 @@ async function accessUser(req, env) {
   return pay.email || pay.common_name || "service";
 }
 
+// ---------- own login: e-mail + password ----------
+const ITER = 100000, SESSION_DAYS = 30, MAX_FAILS = 5, LOCK_MIN = 15;
+const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+const rnd = n => hex(crypto.getRandomValues(new Uint8Array(n)));
+async function pbkdf2(pw, salt, iter) {
+  const k = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveBits"]);
+  return hex(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: enc.encode(salt), iterations: iter }, k, 256));
+}
+const sha = async t => hex(await crypto.subtle.digest("SHA-256", enc.encode(t)));
+async function initAuth(db) {
+  await db.batch([
+    db.prepare("CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, hash TEXT NOT NULL, salt TEXT NOT NULL, iter INTEGER NOT NULL, created TEXT NOT NULL)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS sessions (tok TEXT PRIMARY KEY, email TEXT NOT NULL, exp INTEGER NOT NULL)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS fails (k TEXT PRIMARY KEY, n INTEGER NOT NULL, until INTEGER NOT NULL)"),
+  ]);
+}
+const normEmail = e => String(e || "").trim().toLowerCase();
+const goodEmail = e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) && e.length <= 200;
+const pwProblem = p => typeof p !== "string" || p.length < 10 ? "Password must have at least 10 characters." : p.length > 200 ? "Password is too long." : null;
+function cookie(req, name) {
+  const c = req.headers.get("Cookie") || ""; for (const part of c.split(/;\s*/)) { const i = part.indexOf("="); if (part.slice(0, i) === name) return part.slice(i + 1); } return null;
+}
+const SC = (v, age) => `itd_s=${v}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${age}`;
+async function sessionUser(req, db) {
+  const t = cookie(req, "itd_s"); if (!t || !/^[0-9a-f]{64}$/.test(t)) return null;
+  const r = await db.prepare("SELECT email, exp FROM sessions WHERE tok = ?").bind(await sha(t)).first();
+  if (!r || r.exp < Date.now()) return null;
+  return r.email;
+}
+async function newSession(db, email) {
+  const t = rnd(32);
+  await db.prepare("DELETE FROM sessions WHERE exp < ?").bind(Date.now()).run();
+  await db.prepare("INSERT INTO sessions (tok, email, exp) VALUES (?, ?, ?)").bind(await sha(t), email, Date.now() + SESSION_DAYS * 864e5).run();
+  return SC(t, SESSION_DAYS * 86400);
+}
+async function locked(db, k) { const r = await db.prepare("SELECT n, until FROM fails WHERE k = ?").bind(k).first(); return r && r.n >= MAX_FAILS && r.until > Date.now() ? r.until : 0; }
+async function fail(db, k) {
+  const r = await db.prepare("SELECT n, until FROM fails WHERE k = ?").bind(k).first();
+  const n = r && r.until > Date.now() ? r.n + 1 : 1;
+  await db.prepare("INSERT INTO fails (k, n, until) VALUES (?1, ?2, ?3) ON CONFLICT(k) DO UPDATE SET n = ?2, until = ?3").bind(k, n, Date.now() + LOCK_MIN * 6e4).run();
+}
+const userCount = async db => (await db.prepare("SELECT COUNT(*) AS c FROM users").first()).c;
+
+async function authRoutes(req, env, url) {
+  const db = env.DB, p = url.pathname, ip = req.headers.get("CF-Connecting-IP") || "?";
+  if (p === "/logout") {
+    const t = cookie(req, "itd_s"); if (t) await db.prepare("DELETE FROM sessions WHERE tok = ?").bind(await sha(t)).run();
+    return new Response(null, { status: 302, headers: { Location: "/login", "Set-Cookie": SC("", 0) } });
+  }
+  if (p === "/api/auth/state") return J({ setup: (await userCount(db)) === 0 });
+  if (req.method !== "POST" || !p.startsWith("/api/auth/")) return null;
+  // same-origin check for every auth POST
+  const o = req.headers.get("Origin"); if (o && o !== url.origin) return J({ error: "Wrong origin." }, 403);
+  let b; try { b = await req.json(); } catch (e) { return J({ error: "Bad request." }, 400); }
+  const email = normEmail(b.email);
+
+  if (p === "/api/auth/setup") { // first account only; needs the sync key as a one-time code
+    if ((await userCount(db)) > 0) return J({ error: "An account already exists. Sign in instead." }, 409);
+    if (await locked(db, "setup|" + ip)) return J({ error: "Too many attempts. Try again later." }, 429);
+    if (!sameText(String(b.code || ""), env.SYNC_KEY)) { await fail(db, "setup|" + ip); return J({ error: "Setup code is not right." }, 403); }
+    if (!goodEmail(email)) return J({ error: "Enter a valid e-mail." }, 400);
+    const pr = pwProblem(b.password); if (pr) return J({ error: pr }, 400);
+    const salt = rnd(16);
+    await db.prepare("INSERT INTO users (email, hash, salt, iter, created) VALUES (?, ?, ?, ?, ?)").bind(email, await pbkdf2(b.password, salt, ITER), salt, ITER, new Date().toISOString()).run();
+    return J({ ok: true }, 200, { "Set-Cookie": await newSession(db, email) });
+  }
+  if (p === "/api/auth/login") {
+    const until = Math.max(await locked(db, "u|" + email), await locked(db, "ip|" + ip));
+    if (until) return J({ error: `Too many attempts. Try again in ${Math.ceil((until - Date.now()) / 6e4)} min.` }, 429);
+    const u = await db.prepare("SELECT hash, salt, iter FROM users WHERE email = ?").bind(email).first();
+    const h = await pbkdf2(String(b.password || ""), u ? u.salt : "x", u ? u.iter : ITER); // same work whether or not the user exists
+    if (!u || !sameText(h, u.hash)) { await fail(db, "u|" + email); await fail(db, "ip|" + ip); return J({ error: "E-mail or password is not right." }, 401); }
+    await db.prepare("DELETE FROM fails WHERE k IN (?, ?)").bind("u|" + email, "ip|" + ip).run();
+    return J({ ok: true }, 200, { "Set-Cookie": await newSession(db, email) });
+  }
+  if (p === "/api/auth/password") { // change password (signed in)
+    const me = await sessionUser(req, db); if (!me) return J({ error: "Sign in first." }, 401);
+    const u = await db.prepare("SELECT hash, salt, iter FROM users WHERE email = ?").bind(me).first();
+    if (!u || !sameText(await pbkdf2(String(b.current || ""), u.salt, u.iter), u.hash)) return J({ error: "Current password is not right." }, 403);
+    const pr = pwProblem(b.password); if (pr) return J({ error: pr }, 400);
+    const salt = rnd(16);
+    await db.prepare("UPDATE users SET hash = ?, salt = ?, iter = ? WHERE email = ?").bind(await pbkdf2(b.password, salt, ITER), salt, ITER, me).run();
+    await db.prepare("DELETE FROM sessions WHERE email = ?").bind(me).run(); // sign out everywhere
+    return J({ ok: true }, 200, { "Set-Cookie": await newSession(db, me) });
+  }
+  return J({ error: "Not found." }, 404);
+}
+const PUBLIC = new Set(["/login", "/login.html", "/wordmark.png", "/favicon.ico"]);
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
-    if (!env.SYNC_KEY || !env.TEAM_DOMAIN || !env.ACCESS_AUD) return new Response("IT Desk setup: add SYNC_KEY (secret), TEAM_DOMAIN and ACCESS_AUD to this worker.", { status: 503 });
-    const user = await accessUser(req, env);
-    if (!user) return new Response("Sign in through Cloudflare Access.", { status: 401 });
-    await init(env.DB);
+    if (!env.SYNC_KEY) return new Response("IT Desk setup: add SYNC_KEY (secret) to this worker.", { status: 503 });
+    await init(env.DB); await initAuth(env.DB);
     const isSync = () => sameText(req.headers.get("X-Sync-Key") || "", env.SYNC_KEY);
+
+    // public: login page, its logo, and the auth endpoints
+    if (PUBLIC.has(url.pathname)) return asset(env, req, url.pathname);
+    const ar = await authRoutes(req, env, url); if (ar) return ar;
+
+    // PC sync script: the sync key is its credential
+    const syncOnly = url.pathname === "/api/sync" || (url.pathname === "/api/data" && req.method === "GET" && req.headers.get("X-Sync-Key"));
+    let user = null;
+    if (syncOnly) { if (!isSync()) return J({ error: "bad sync key" }, 403); user = "pc-sync"; }
+    else user = (await sessionUser(req, env.DB)) || (await accessUser(req, env).catch(() => null));
+    if (!user) {
+      if (url.pathname.startsWith("/api/")) return J({ error: "login" }, 401);
+      return new Response(null, { status: 302, headers: { Location: "/login" } });
+    }
     if (url.pathname === "/api/me") return J({ user });
 
     // PC sync script
@@ -113,8 +214,13 @@ export default {
       return J({ error: "method" }, 405);
     }
 
-    const res = await env.ASSETS.fetch(req);
-    const h = new Headers(res.headers); h.set("cache-control", "no-store"); h.set("X-Frame-Options", "DENY"); h.set("Referrer-Policy", "no-referrer");
-    return new Response(res.body, { status: res.status, headers: h });
+    return asset(env, req, url.pathname);
   }
 };
+async function asset(env, req, path) {
+  const u = new URL(req.url); u.pathname = path;
+  const res = await env.ASSETS.fetch(new Request(u, { method: "GET", headers: req.headers }));
+  const h = new Headers(res.headers); h.set("cache-control", "no-store"); h.set("X-Frame-Options", "DENY"); h.set("Referrer-Policy", "no-referrer");
+  h.set("X-Content-Type-Options", "nosniff");
+  return new Response(res.body, { status: res.status, headers: h });
+}
